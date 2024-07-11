@@ -20,12 +20,12 @@ services:
     container_name: plena-finance-mongodb
     image: mongo:latest
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=rtrp
-      - MONGO_INITDB_ROOT_PASSWORD=Qwerty@12
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     ports:
       - "8001:27017"
     volumes:
-      - plena-finance:/data/db
+      - mongo_db:/data
     networks:
       - app_network
     # healthcheck:
@@ -43,7 +43,7 @@ services:
       - "8002:8002"
       - "6379:6379"
     volumes:
-      - plena-finance:/data/cache
+      - redis-data:/data
     depends_on:
       - mongodb
     environment:
@@ -54,8 +54,9 @@ services:
 
 volumes:
   plena-finance_backend-backend:
-  plena-finance:
-
+  mongo_db:
+  redis-data:
+  
 networks:
   app_network:
     driver: bridge
