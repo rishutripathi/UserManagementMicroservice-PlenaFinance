@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Inject, Module } from '@nestjs/common';
 import { BlockController } from './controller/block.controller';
 import { BlockService } from './service/block.service';
 import {

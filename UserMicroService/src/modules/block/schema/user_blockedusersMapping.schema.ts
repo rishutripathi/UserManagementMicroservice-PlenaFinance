@@ -5,8 +5,9 @@ import { Document, Types } from 'mongoose';
   timestamps: true,
   versionKey: false,
   collection: 'user_blockedusersMapping',
-  autoIndex: process.env.ENVIROMENT == 'development',
+  autoIndex: process.env.ENVIROMENT == 'development'
 })
+
 export class BlockedUsers extends Document {
   @Prop({ required: true })
   username: string;

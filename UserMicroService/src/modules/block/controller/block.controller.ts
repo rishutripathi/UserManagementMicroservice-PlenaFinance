@@ -2,26 +2,21 @@ import { Body, Controller, Post, UseInterceptors } from '@nestjs/common';
 import { FetchUserDetailsDTO } from 'src/modules/user/DTO/userName.dto';
 import { BlockService } from '../service/block.service';
 import { UserIdentity } from 'src/modules/user/decorator/auth.decorator';
-import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('users')
-//@UseInterceptors(CacheInterceptor)
 export class BlockController {
   constructor(private blockService: BlockService) {}
 
   @Post('block')
   async blockUser(
-    @UserIdentity() adminUserName: string, // custom decorator to get username of logged-in user
+    @UserIdentity() adminUserName: { 'admin_userName': string }, // custom decorator to get username of logged-in user
     @Body() fetchUserDetailsDTO: FetchUserDetailsDTO,
-  ): Promise<boolean | string> {
+  ): Promise<boolean> {
     try {
-      console.log('loggedin user?????????', adminUserName);
-
       const isUserBlocked = await this.blockService.blockUserOrThrow(
         fetchUserDetailsDTO,
-        adminUserName,
+        adminUserName.admin_userName
       );
-      console.log('C?', isUserBlocked);
 
       return isUserBlocked;
     } catch (error) {
@@ -31,9 +26,18 @@ export class BlockController {
 
   @Post('unblock')
   async unblockUser(
-    @UserIdentity() userNameDTO: FetchUserDetailsDTO, // custom decorator to get username of logged-in user
-    @Body() userDetailsDTO: FetchUserDetailsDTO,
-  ): Promise<string> {
-    return `User ${userDetailsDTO} unblocked successfully`;
+    @UserIdentity() adminUserName: { 'admin_userName': string }, // custom decorator to get username of logged-in user
+    @Body() fetchUserDetailsDTO: FetchUserDetailsDTO,
+  ): Promise<boolean> {
+    try {
+      const isUserBlocked = await this.blockService.unBlockUserOrThrow(
+        fetchUserDetailsDTO,
+        adminUserName.admin_userName
+      );
+
+      return isUserBlocked;
+    } catch (error) {
+      throw error;
+    }
   }
 }

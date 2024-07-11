@@ -13,6 +13,7 @@ export const UserIdentity = createParamDecorator(
         const jwtService = new JwtService();
         const decodedToken = jwtService.decode(token);
         request.decodedToken = decodedToken;
+        
       } catch (error) {
         if (error instanceof JsonWebTokenError) {
           throw new UnauthorizedException('Invalid token');
@@ -23,6 +24,6 @@ export const UserIdentity = createParamDecorator(
       throw new UnauthorizedException('Token is missing in header');
     }
     
-    return request.decodedToken.username;
+    return ({ admin_userName: request.decodedToken.username });
   },
 );

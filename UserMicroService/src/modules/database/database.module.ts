@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        mongoose.set('debug', true);
+        //mongoose.set('debug', true); // for logging mongo queries
         return {
           uri: configService.get<string>('MONGO_URI'),
         };

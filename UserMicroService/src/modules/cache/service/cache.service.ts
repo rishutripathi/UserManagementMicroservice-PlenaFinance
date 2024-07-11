@@ -7,10 +7,9 @@ export class CacheService {
   constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
   async get(key: string): Promise<string> {
-    console.log("key in service function", key);
     
     const cacheResponse = await this.cacheManager.get(key);
-    return JSON.stringify(cacheResponse);
+    return cacheResponse && JSON.stringify(cacheResponse);
   }
 
   async set(key: string, value: string | object): Promise<void> {

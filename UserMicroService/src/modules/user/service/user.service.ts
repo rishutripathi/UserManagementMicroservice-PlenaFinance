@@ -1,39 +1,63 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from '../schema/user.schema';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { UserDTO } from '../DTO/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/modules/cache/service/cache.service';
+import { BlockedUsers } from 'src/modules/block/schema/user_blockedusersMapping.schema';
+import { BlockService } from 'src/modules/block/service/block.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(BlockedUsers.name) private readonly blockedUsersModel: Model<BlockedUsers>,
     private jwtService: JwtService,
     private cacheService: CacheService
   ) {}
 
-  async getUserDetailsByUserNameOrThrow(username: string): Promise<{ data: User, src: string }> {
+  async getUserDetailsByUserNameOrThrow(adminUser: string, username: string): Promise<{ data: User | null, src: string }> {
     try {
-      console.log("here?????????", username);
-      
-      const userDetailsFromCache = await this.cacheService.get(`username: ${username}`);
-      console.log("cache-", userDetailsFromCache);
-      
-      if(!userDetailsFromCache) {
-        const userDetailsFromDB = await this.userModel.findOne({
-          username,
-        });
-        if (!userDetailsFromDB) {
-          throw new NotFoundException('User not found!');
+      const getAllUsersBlockedByAdmin = await this.blockedUsersModel.find(
+        {
+          username: adminUser
+        },
+        { 
+          blockedusers: 1, _id: 0
         }
-        console.log("db-", userDetailsFromDB);
+      ).exec();
+      if(!getAllUsersBlockedByAdmin.length) {
+        const userDetailsFromCache = await this.cacheService.get(`${username}`);
+        if(!userDetailsFromCache) {
+          const userDetailsFromDB = await this.userModel.findOne({
+            username,
+          }).exec();
+          if (!userDetailsFromDB) {
+            throw new NotFoundException('User not found!');
+          }
+          
+          return { src: 'DB', data: userDetailsFromDB };
+        }
         
-        return { src: 'DB', data: userDetailsFromDB };;
+        return { src: 'cache', data: JSON.parse(userDetailsFromCache) };
+      } else {
+        let userDetailsFromCache, userDetailsFromDB, src = 'cache';
+        userDetailsFromCache = await this.cacheService.get(`${username}`);
+        if(!userDetailsFromCache) {
+          userDetailsFromDB = await this.userModel.findOne({
+            username,
+          }).exec();
+          if (!userDetailsFromDB) {
+            throw new NotFoundException('User not found!');
+          }
+          src = 'DB';
+        }
+        if(!getAllUsersBlockedByAdmin.map(i => String(i.blockedusers)).includes(userDetailsFromCache && JSON.parse(userDetailsFromCache)._id) || userDetailsFromDB && userDetailsFromDB._id) {
+          return ({ src, data: userDetailsFromCache && JSON.parse(userDetailsFromCache) || userDetailsFromDB });
+        }
+        return ({ src, data: null });
       }
-      
-      return { src: 'cache', data: JSON.parse(userDetailsFromCache) };
     } catch (error) {
       throw error;
     }
@@ -61,21 +85,19 @@ export class UserService {
 
   async createUser(userDTO: UserDTO): Promise<User> {
     const user = new this.userModel(userDTO);
-    console.log('created?', user);
-    await this.cacheService.set('username: '+user.username, user);
+
     return user.save();
   }
 
   async getUserByUserIdOrThrow(username: string): Promise<User> {
     try {
-      console.log('username in user service:->', username);
       const userDetails = await this.userModel.findOne({
         username,
-      });
+      }).exec();
       if (!userDetails) {
         throw new NotFoundException('User not found!');
       }
-
+      
       return userDetails;
     } catch (error) {
       throw error;
