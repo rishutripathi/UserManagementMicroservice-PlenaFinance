@@ -18,13 +18,24 @@ export class UserController {
 
   @Get('search/user/:username')
   async getUserByUserName(
-    @UserIdentity() userNameDTO: { 'admin_userName': string }, // custom decorator to get username of logged-in user
+    @UserIdentity() userNameDTO: { 'admin_username': string }, // custom decorator to get username of logged-in user
     @Param() userDetailsDto: FetchUserDetailsDTO,
   ): Promise<{ data: User, src: string }> {
     const { username } = userDetailsDto;
-    const { admin_userName } = userNameDTO;
+    const { admin_username } = userNameDTO;
     
-    return this.userService.getUserDetailsByUserNameOrThrow(admin_userName, username.trim());
+    return this.userService.getUserDetailsByUserNameOrThrow(admin_username, username.trim());
+  }
+
+  @Get('search/user/:userId')
+  async getUserByUserId(
+    @UserIdentity() userNameDTO: { 'admin_username': string }, // custom decorator to get username of logged-in user
+    @Param() userId: string
+  ): Promise<User> {
+    const { admin_username } = userNameDTO;
+    const user = await this.userService.getUserByIdOrThrow(admin_username, userId);
+
+    return user;
   }
 
   @Get('search/age/:minage-:maxage')
@@ -57,5 +68,13 @@ export class UserController {
     );
 
     return userService;
+  }
+
+  @Get('search/all')
+  async getAllUsers(): Promise<User[]> {
+    
+    const usersList = await this.userService.getAllUsers();
+
+    return usersList;
   }
 }

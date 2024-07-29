@@ -9,13 +9,13 @@ export class BlockController {
 
   @Post('block')
   async blockUser(
-    @UserIdentity() adminUserName: { 'admin_userName': string }, // custom decorator to get username of logged-in user
+    @UserIdentity() adminUserName: { 'admin_username': string }, // custom decorator to get username of logged-in user
     @Body() fetchUserDetailsDTO: FetchUserDetailsDTO,
   ): Promise<boolean> {
     try {
       const isUserBlocked = await this.blockService.blockUserOrThrow(
         fetchUserDetailsDTO,
-        adminUserName.admin_userName
+        adminUserName.admin_username
       );
 
       return isUserBlocked;
@@ -26,13 +26,13 @@ export class BlockController {
 
   @Post('unblock')
   async unblockUser(
-    @UserIdentity() adminUserName: { 'admin_userName': string }, // custom decorator to get username of logged-in user
+    @UserIdentity() adminUserName: { 'admin_username': string }, // custom decorator to get username of logged-in user
     @Body() fetchUserDetailsDTO: FetchUserDetailsDTO,
   ): Promise<boolean> {
     try {
       const isUserBlocked = await this.blockService.unBlockUserOrThrow(
         fetchUserDetailsDTO,
-        adminUserName.admin_userName
+        adminUserName.admin_username
       );
 
       return isUserBlocked;

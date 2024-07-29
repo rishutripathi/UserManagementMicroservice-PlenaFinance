@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CacheService } from 'src/modules/cache/service/cache.service';
 import { BlockedUsers } from 'src/modules/block/schema/user_blockedusersMapping.schema';
 import { BlockService } from 'src/modules/block/service/block.service';
+import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserService {
@@ -14,7 +15,8 @@ export class UserService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(BlockedUsers.name) private readonly blockedUsersModel: Model<BlockedUsers>,
     private jwtService: JwtService,
-    private cacheService: CacheService
+    private cacheService: CacheService,
+    private readonly userRepository: UserRepository
   ) {}
 
   async getUserDetailsByUserNameOrThrow(adminUser: string, username: string): Promise<{ data: User | null, src: string }> {
@@ -89,11 +91,26 @@ export class UserService {
     return user.save();
   }
 
-  async getUserByUserIdOrThrow(username: string): Promise<User> {
+  async getUserByUserNameOrThrow(username: string): Promise<User> {
     try {
-      const userDetails = await this.userModel.findOne({
+      const userDetails = await this.userRepository.getUserByUsername(
         username,
-      }).exec();
+      );
+      if (!userDetails) {
+        throw new NotFoundException('User not found!');
+      }
+      
+      return userDetails;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUserByIdOrThrow(adminUser: string, _id: string): Promise<User> {
+    try {
+      const userDetails = await this.userRepository.getUserById(
+        _id,
+      );
       if (!userDetails) {
         throw new NotFoundException('User not found!');
       }
@@ -119,5 +136,9 @@ export class UserService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return this.userRepository.getAllUsers();
   }
 }

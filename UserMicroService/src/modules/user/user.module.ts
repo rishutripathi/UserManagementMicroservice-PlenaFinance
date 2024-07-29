@@ -8,6 +8,7 @@ import { CacheService } from '../cache/service/cache.service';
 import { CacheM } from '../cache/cache.module';
 import { BlockModule } from '../block/block.module';
 import { BlockedUsers, BlockedUsersSchema } from '../block/schema/user_blockedusersMapping.schema';
+import { UserRepository } from './repository/user.repository';
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { BlockedUsers, BlockedUsersSchema } from '../block/schema/user_blockedus
   ],
   exports: [UserService],
   controllers: [UserController],
-  providers: [UserService, JwtService, CacheService,],
+  providers: [UserService, JwtService, CacheService, UserRepository],
 })
 export class UserModule {}

@@ -24,6 +24,6 @@ export const UserIdentity = createParamDecorator(
       throw new UnauthorizedException('Token is missing in header');
     }
     
-    return ({ admin_userName: request.decodedToken.username });
+    return ({ admin_username: request.decodedToken.username });
   },
 );
